@@ -22,9 +22,98 @@ class ArraudhohSantriPayApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: forest, primary: forest),
         fontFamily: 'Roboto',
       ),
-      home: const HomeShell(),
+      home: const RoleSelectionPage(),
     );
   }
+}
+
+
+enum UserRole { santri, waliSantri, admin }
+
+extension UserRoleInfo on UserRole {
+  String get label => switch (this) {
+    UserRole.santri => 'Santri',
+    UserRole.waliSantri => 'Wali Santri',
+    UserRole.admin => 'Admin',
+  };
+  IconData get icon => switch (this) {
+    UserRole.santri => Icons.school_rounded,
+    UserRole.waliSantri => Icons.family_restroom_rounded,
+    UserRole.admin => Icons.admin_panel_settings_rounded,
+  };
+  String get description => switch (this) {
+    UserRole.santri => 'Akses saldo dan aktivitas kartu santri',
+    UserRole.waliSantri => 'Pantau informasi dan kebutuhan putra-putri',
+    UserRole.admin => 'Kelola data dan pantau aktivitas aplikasi',
+  };
+}
+
+class RoleSelectionPage extends StatelessWidget {
+  const RoleSelectionPage({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: SafeArea(child: ListView(padding: const EdgeInsets.fromLTRB(24, 38, 24, 28), children: [
+      Center(child: Container(width: 104, height: 104, padding: const EdgeInsets.all(9), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(28), boxShadow: [BoxShadow(color: forest.withOpacity(.10), blurRadius: 22, offset: const Offset(0, 8))]), child: Image.asset('assets/logo_arraudhoh.png'))),
+      const SizedBox(height: 22),
+      const Text('ARRAUDHOH SANTRIPAY', textAlign: TextAlign.center, style: TextStyle(color: forest, fontSize: 21, fontWeight: FontWeight.w900, letterSpacing: .8)),
+      const SizedBox(height: 7),
+      const Text('Silakan pilih jenis akun untuk melanjutkan', textAlign: TextAlign.center, style: TextStyle(color: Colors.black54, fontSize: 13)),
+      const SizedBox(height: 32),
+      ...UserRole.values.map((role) => Padding(padding: const EdgeInsets.only(bottom: 13), child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LoginPage(role: role))),
+        child: Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFE5EBDD))), child: Row(children: [
+          Container(width: 52, height: 52, decoration: BoxDecoration(color: const Color(0xFFE8F2E9), borderRadius: BorderRadius.circular(16)), child: Icon(role.icon, color: forest, size: 26)),
+          const SizedBox(width: 14), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(role.label, style: const TextStyle(color: forest, fontWeight: FontWeight.w900, fontSize: 16)), const SizedBox(height: 4), Text(role.description, style: const TextStyle(color: Colors.black54, fontSize: 11))])),
+          const Icon(Icons.arrow_forward_ios_rounded, color: gold, size: 17),
+        ])),
+      ))),
+      const SizedBox(height: 14),
+      const Text('Pondok Pesantren Arraudhoh · Bogor', textAlign: TextAlign.center, style: TextStyle(color: Colors.black45, fontSize: 11)),
+    ])),
+  );
+}
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key, required this.role});
+  final UserRole role;
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final username = TextEditingController();
+  final password = TextEditingController();
+  bool obscure = true;
+  @override
+  void dispose() { username.dispose(); password.dispose(); super.dispose(); }
+  void signIn() {
+    if (username.text.trim().isEmpty || password.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Isi nama pengguna dan kata sandi terlebih dahulu.')));
+      return;
+    }
+    // Login demo: belum memverifikasi akun melalui server.
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const HomeShell()), (route) => false);
+  }
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text('Masuk sebagai ${widget.role.label}'), backgroundColor: paper),
+    body: SafeArea(child: ListView(padding: const EdgeInsets.fromLTRB(24, 22, 24, 28), children: [
+      Container(width: 76, height: 76, padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(22)), child: Image.asset('assets/logo_arraudhoh.png')),
+      const SizedBox(height: 22),
+      Text('Selamat datang, ${widget.role.label}', style: const TextStyle(color: forest, fontSize: 23, fontWeight: FontWeight.w900)),
+      const SizedBox(height: 7),
+      const Text('Masukkan data akun untuk melanjutkan.', style: TextStyle(color: Colors.black54, fontSize: 13)),
+      const SizedBox(height: 25),
+      TextField(controller: username, textInputAction: TextInputAction.next, decoration: const InputDecoration(labelText: 'Username / ID akun', prefixIcon: Icon(Icons.person_outline))),
+      const SizedBox(height: 14),
+      TextField(controller: password, obscureText: obscure, onSubmitted: (_) => signIn(), decoration: InputDecoration(labelText: 'Kata sandi', prefixIcon: const Icon(Icons.lock_outline), suffixIcon: IconButton(onPressed: () => setState(() => obscure = !obscure), icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined)))),
+      const SizedBox(height: 22),
+      SizedBox(height: 52, child: FilledButton(onPressed: signIn, style: FilledButton.styleFrom(backgroundColor: forest, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))), child: const Text('Masuk', style: TextStyle(fontWeight: FontWeight.w800)))),
+      const SizedBox(height: 14),
+      Container(padding: const EdgeInsets.all(13), decoration: BoxDecoration(color: const Color(0xFFE8F2E9), borderRadius: BorderRadius.circular(14)), child: const Text('Catatan: halaman masuk ini masih prototipe. Username dan kata sandi belum diverifikasi dan belum terhubung ke database.', style: TextStyle(color: forest, fontSize: 11, height: 1.5))),
+    ])),
+  );
 }
 
 class HomeShell extends StatefulWidget {
