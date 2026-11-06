@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() => runApp(const ArraudhohSantriPayApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp();
+
+  runApp(const ArraudhohSantriPayApp());
+}
 
 const Color forest = Color(0xFF064E3B);
 const Color green = Color(0xFF087A55);
